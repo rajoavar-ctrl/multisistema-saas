@@ -1,0 +1,12 @@
+-- CreateTable
+CREATE TABLE "Pago" (
+    "id" SERIAL NOT NULL,
+    "valor" DOUBLE PRECISION NOT NULL,
+    "cuotaId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Pago_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "Pago" ADD CONSTRAINT "Pago_cuotaId_fkey" FOREIGN KEY ("cuotaId") REFERENCES "Cuota"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Empresa {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  usuarios  Usuario[]
+  clientes Cliente[]
+  productos Producto[]
+  ventas Venta[]
+  createdAt DateTime  @default(now())
+}
+
+model Usuario {
+  id         Int      @id @default(autoincrement())
+  nombre     String
+  correo     String   @unique
+  password   String
+  rol        String
+  empresaId  Int
+  empresa    Empresa  @relation(fields: [empresaId], references: [id])
+  ventas Venta[]
+  movimientos MovimientoInventario[]
+  createdAt  DateTime @default(now())
+}
+
+model Cliente {
+
+  id           Int      @id @default(autoincrement())
+
+  nombre       String
+
+  documento    String?  @unique
+
+  telefono     String?
+  direccion    String?
+
+  email        String?
+
+  activo       Boolean  @default(true)
+
+  empresaId    Int
+
+  empresa      Empresa  @relation(fields: [empresaId], references: [id])
+
+  ventas       Venta[]
+
+  createdAt    DateTime @default(now())
+}
+
+model Producto {
+  id         Int      @id @default(autoincrement())
+  nombre     String
+  precio     Float
+  stock      Int
+  activo     Boolean @default(true)
+  empresaId  Int
+  empresa    Empresa  @relation(fields: [empresaId], references: [id])
+  detallesVenta DetalleVenta[]
+  movimientos MovimientoInventario[]
+  createdAt  DateTime @default(now())
+}
+
+model MovimientoInventario {
+  id              Int       @id @default(autoincrement())
+
+  tipoMovimiento  String
+  cantidad        Int
+
+  stockAnterior   Int @default(0)
+  stockNuevo      Int @default(0)
+
+  motivo          String?
+
+  productoId      Int
+  usuarioId       Int
+
+  producto        Producto  @relation(fields: [productoId], references: [id])
+  usuario         Usuario   @relation(fields: [usuarioId], references: [id])
+
+  createdAt       DateTime  @default(now())
+}
+
+model Venta {
+  id               Int       @id @default(autoincrement())
+  total            Float
+  cuotaInicial     Float     @default(0)
+  saldoPendiente   Float
+
+  numeroCuotas     Int      @default(12)
+  frecuenciaPago   String   @default("mensual")
+
+  empresaId        Int
+  clienteId        Int
+  vendedorId       Int
+
+  empresa          Empresa   @relation(fields: [empresaId], references: [id])
+  cliente          Cliente   @relation(fields: [clienteId], references: [id])
+  vendedor         Usuario   @relation(fields: [vendedorId], references: [id])
+
+  detalles         DetalleVenta[]
+  cuotas           Cuota[]
+
+  createdAt        DateTime  @default(now())
+}
+
+model DetalleVenta {
+  id          Int       @id @default(autoincrement())
+  cantidad    Int
+  precio      Float
+  subtotal    Float
+
+  ventaId     Int
+  productoId  Int
+
+  venta        Venta     @relation(fields: [ventaId], references: [id])
+  producto     Producto  @relation(fields: [productoId], references: [id])
+
+  createdAt   DateTime  @default(now())
+}
+
+model Cuota {
+  id          Int       @id @default(autoincrement())
+  numero      Int
+  valor       Float
+  saldo       Float
+  estado      String    @default("pendiente")
+  fechaPago   DateTime
+
+  ventaId     Int
+  venta       Venta     @relation(fields: [ventaId], references: [id])
+  pagos       Pago[]
+
+  createdAt   DateTime  @default(now())
+}
+
+model Pago {
+  id          Int       @id @default(autoincrement())
+  valor       Float
+
+  cuotaId     Int
+  cuota       Cuota     @relation(fields: [cuotaId], references: [id])
+
+  createdAt   DateTime  @default(now())
+}
